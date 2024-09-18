@@ -2,156 +2,96 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using MVCWebapp.Data;
+using MVCWebapp.Repositories.GenericRepositories;
+using MVCWebapp.DTOs.UserDTOs;
 using MVCWebapp.Models;
+using AutoMapper;
 
 namespace MVCWebapp.Controllers
 {
-    public class UsersController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UsersController : ControllerBase
     {
-        private readonly MVCWebappContext _context;
+        private readonly IMapper _mapper;
+        private readonly IGenericRepositories _genericRepositories;
 
-        public UsersController(MVCWebappContext context)
+        public UsersController(IMapper mapper, IGenericRepositories genericRepositories)
         {
-            _context = context;
+            _mapper = mapper;
+            _genericRepositories = genericRepositories;
         }
 
-        // GET: Users
-        public async Task<IActionResult> Index()
+        // GET: api/Users
+        [HttpGet]
+        public async Task<ActionResult<List<UserReadDTO>>> GetUser()
         {
-            return View(await _context.User.ToListAsync());
+            var users = await _genericRepositories.SelectAll<User>();
+            var userDTO = _mapper.Map<List<UserReadDTO>>(users);
+            return Ok(userDTO);
         }
 
-        // GET: Users/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Users/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<UserReadDTO>> GetUser(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var user = await _genericRepositories.SelectbyId<User>(id);
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.UserId == id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            return View(user);
+            var userDTO = _mapper.Map<UserReadDTO>(user);
+
+            return Ok(userDTO);
         }
 
-        // GET: Users/Create
-        public IActionResult Create()
+        // PUT: api/Users/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUser(int id, UserUpdateDTO userUpdateDTO)
         {
-            return View();
+            
+            if(id != userUpdateDTO.UserId)
+            {
+                return BadRequest();
+            }
+            var user=_mapper.Map<User>(userUpdateDTO);
+
+            await _genericRepositories.UpdatebyId(id, user);
+
+            return NoContent();
         }
 
-        // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Users
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserId,FullName,Email,GithubLink,LinkedInName,Phone,Description")] User user)
+        public async Task<ActionResult<UserReadDTO>> PostUser(UserCreateDTO userCreateDTO)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(user);
+            var user = _mapper.Map<User>(userCreateDTO);
+            user.IsDeleted = false;
+            await _genericRepositories.Create(user);
+            var userRead = _mapper.Map<UserReadDTO>(user);
+            return CreatedAtAction("GetUser", new { id = userRead.UserId }, userRead);
         }
 
-        // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        // DELETE: api/Users/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var user = await _context.User.FindAsync(id);
+            var user = await _genericRepositories.SelectbyId<User>(id);
             if (user == null)
             {
                 return NotFound();
             }
-            return View(user);
-        }
+            user.IsDeleted = true;
+            await _genericRepositories.UpdatebyId(id, user);
 
-        // POST: Users/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UserId,FullName,Email,GithubLink,LinkedInName,Phone,Description")] User user)
-        {
-            if (id != user.UserId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.UserId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(user);
-        }
-
-        // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.UserId == id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
-        }
-
-        // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var user = await _context.User.FindAsync(id);
-            if (user != null)
-            {
-                _context.User.Remove(user);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.User.Any(e => e.UserId == id);
+            return NoContent();
         }
     }
 }

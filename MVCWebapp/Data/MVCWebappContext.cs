@@ -14,7 +14,9 @@ namespace MVCWebapp.Data
         {
         }
 
+        public DbSet<MVCWebapp.Models.UserType> UserType { get; set; } = default!;
         public DbSet<MVCWebapp.Models.User> User { get; set; } = default!;
         public DbSet<MVCWebapp.Models.Skill> Skill { get; set; } = default!;
+        public DbSet<MVCWebapp.Models.Project> Project { get; set; } = default!;
     }
 }

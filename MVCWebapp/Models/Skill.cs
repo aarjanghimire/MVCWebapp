@@ -2,9 +2,9 @@
 {
     public class Skill
     {
-        public int SkillId { get; set; }
+        public required int SkillId { get; set; }
         public required string SkillName { get; set; }
-        public int UserId { get; set;}
-        public User User { get; set;}
+        public required int UserId { get; set; }
+        public required bool IsDeleted { get; set; }
     }
 }

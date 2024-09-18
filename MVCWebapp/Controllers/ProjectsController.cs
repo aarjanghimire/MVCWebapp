@@ -12,47 +12,47 @@ namespace MVCWebapp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SkillsController : ControllerBase
+    public class ProjectsController : ControllerBase
     {
         private readonly MVCWebappContext _context;
 
-        public SkillsController(MVCWebappContext context)
+        public ProjectsController(MVCWebappContext context)
         {
             _context = context;
         }
 
-        // GET: api/Skills
+        // GET: api/Projects
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Skill>>> GetSkill()
+        public async Task<ActionResult<IEnumerable<Project>>> GetProject()
         {
-            return await _context.Skill.ToListAsync();
+            return await _context.Project.ToListAsync();
         }
 
-        // GET: api/Skills/5
+        // GET: api/Projects/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Skill>> GetSkill(int id)
+        public async Task<ActionResult<Project>> GetProject(int id)
         {
-            var skill = await _context.Skill.FindAsync(id);
+            var project = await _context.Project.FindAsync(id);
 
-            if (skill == null)
+            if (project == null)
             {
                 return NotFound();
             }
 
-            return skill;
+            return project;
         }
 
-        // PUT: api/Skills/5
+        // PUT: api/Projects/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSkill(int id, Skill skill)
+        public async Task<IActionResult> PutProject(int id, Project project)
         {
-            if (id != skill.SkillId)
+            if (id != project.ProjectId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(skill).State = EntityState.Modified;
+            _context.Entry(project).State = EntityState.Modified;
 
             try
             {
@@ -60,7 +60,7 @@ namespace MVCWebapp.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SkillExists(id))
+                if (!ProjectExists(id))
                 {
                     return NotFound();
                 }
@@ -73,36 +73,36 @@ namespace MVCWebapp.Controllers
             return NoContent();
         }
 
-        // POST: api/Skills
+        // POST: api/Projects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Skill>> PostSkill(Skill skill)
+        public async Task<ActionResult<Project>> PostProject(Project project)
         {
-            _context.Skill.Add(skill);
+            _context.Project.Add(project);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSkill", new { id = skill.SkillId }, skill);
+            return CreatedAtAction("GetProject", new { id = project.ProjectId }, project);
         }
 
-        // DELETE: api/Skills/5
+        // DELETE: api/Projects/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSkill(int id)
+        public async Task<IActionResult> DeleteProject(int id)
         {
-            var skill = await _context.Skill.FindAsync(id);
-            if (skill == null)
+            var project = await _context.Project.FindAsync(id);
+            if (project == null)
             {
                 return NotFound();
             }
 
-            _context.Skill.Remove(skill);
+            _context.Project.Remove(project);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool SkillExists(int id)
+        private bool ProjectExists(int id)
         {
-            return _context.Skill.Any(e => e.SkillId == id);
+            return _context.Project.Any(e => e.ProjectId == id);
         }
     }
 }
